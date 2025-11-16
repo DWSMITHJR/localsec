@@ -1,0 +1,94 @@
+{
+  "name": "localsec-vault",
+  "version": "2.1.0",
+  "description": "Local Security Vault - Secure password and credential management",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:electron": "vite build --mode electron",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .js,.jsx",
+    "lint:fix": "eslint src --ext .js,.jsx --fix",
+    "validate": "node validate.js",
+    "security-check": "npm run lint && npm run validate",
+    "precommit": "npm run security-check",
+    "clean": "node -e \"const fs=require('fs');['dist','release'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true})}catch(e){}})\"",
+    "prebuild": "npm run clean",
+    "postbuild": "node -e \"const fs=require('fs');const files=['README.md','DEPLOYMENT.md','start.bat','start.sh'];files.forEach(f=>{try{fs.copyFileSync(f,'dist/'+f)}catch(e){}})\" && node scripts/build-hook.js"
+  },
+  "keywords": [
+    "security",
+    "password-manager",
+    "vault",
+    "encryption",
+    "credentials",
+    "offline",
+    "privacy",
+    "react",
+    "cloud-sync"
+  ],
+  "author": "LocalSec Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/eslint-parser": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/node": "^20.11.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/coverage-v8": "^1.0.4",
+    "@vitest/ui": "^1.0.4",
+    "autoprefixer": "^10.4.21",
+    "buffer": "^6.0.3",
+    "concurrently": "^8.2.2",
+    "core-js": "^3.46.0",
+    "cross-env": "^7.0.3",
+    "cssnano": "^7.1.2",
+    "electron": "^39.0.0",
+    "electron-builder": "^24.9.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "jsdom": "^23.0.1",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.0.8",
+    "vitest": "^1.0.4",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "not ie > 0",
+      "not ie_mob > 0",
+      "not baidu > 0"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version",
+      "last 1 edge version"
+    ]
+  }
+}

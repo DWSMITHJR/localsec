@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bundle.js Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: green; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; }
+        .error { color: red; padding: 10px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; }
+        .info { color: blue; padding: 10px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Bundle.js Debug Test</h1>
+
+    <div class="test-section">
+        <h3>📁 File Check</h3>
+        <div id="file-check">Checking...</div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 Network Test</h3>
+        <div id="network-test">Testing...</div>
+        <button onclick="testBundleLoad()">Test Bundle Load</button>
+        <button onclick="clearCache()">Clear Browser Cache</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🚀 Quick Actions</h3>
+        <button onclick="window.open('index.html?v=' + Date.now(), '_blank')">Open Main App (Force Reload)</button>
+        <button onclick="location.reload()">Refresh This Page</button>
+        <p><strong>💡 If you see 404 errors, try:</strong></p>
+        <ul>
+            <li>Hard refresh: <code>Ctrl+F5</code> (Windows) or <code>Cmd+Shift+R</code> (Mac)</li>
+            <li>Clear browser cache completely</li>
+            <li>Try a different browser</li>
+            <li>Disable browser extensions temporarily</li>
+        </ul>
+    </div>
+
+    <script>
+        // Test if bundle.js file exists
+        fetch('/bundle.js', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('file-check').innerHTML =
+                        '<div class="success">✅ bundle.js exists (' + response.headers.get('content-length') + ' bytes)</div>';
+                } else {
+                    document.getElementById('file-check').innerHTML =
+                        '<div class="error">❌ bundle.js not found: ' + response.status + '</div>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('file-check').innerHTML =
+                    '<div class="error">❌ Network error: ' + error.message + '</div>';
+            });
+
+        // Test loading bundle.js
+        window.testBundleLoad = function() {
+            document.getElementById('network-test').innerHTML = '<div class="info">🔄 Testing bundle.js load...</div>';
+
+            fetch('/bundle.js')
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                })
+                .then(content => {
+                    if (content.includes('Local Security Vault')) {
+                        document.getElementById('network-test').innerHTML =
+                            '<div class="success">✅ bundle.js loaded successfully! (' + content.length + ' characters)</div>';
+                    } else {
+                        document.getElementById('network-test').innerHTML =
+                            '<div class="error">❌ bundle.js loaded but content seems wrong</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('network-test').innerHTML =
+                        '<div class="error">❌ Failed to load bundle.js: ' + error.message + '</div>';
+                });
+        };
+
+        // Clear browser cache
+        window.clearCache = function() {
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('network-test').innerHTML =
+                '<div class="info">🧹 Cache cleared! Try refreshing the page.</div>';
+        };
+
+        // Auto-test on page load
+        setTimeout(() => {
+            if (document.getElementById('network-test').innerHTML === 'Testing...') {
+                testBundleLoad();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

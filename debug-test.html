@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 50px;
+        }
+        .test-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug Test Page</h1>
+
+    <div class="test-box">
+        <h3>✅ Server Status</h3>
+        <p>HTTP Server: <span id="server-status">Checking...</span></p>
+        <p>Current Time: <span id="current-time"></span></p>
+    </div>
+
+    <div class="test-box">
+        <h3>🎨 CSS Loading Test</h3>
+        <p>Background gradient: <span id="css-test">Testing...</span></p>
+    </div>
+
+    <div class="test-box">
+        <h3>📄 File Access Test</h3>
+        <p>Bundle.js: <span id="bundle-test">Testing...</span></p>
+        <p>CSS: <span id="css-file-test">Testing...</span></p>
+    </div>
+
+    <div class="test-box">
+        <h3>🚀 Actions</h3>
+        <button onclick="window.location.href='index.html'">Test Main App</button>
+        <button onclick="location.reload()">Refresh</button>
+    </div>
+
+    <script>
+        // Test server status
+        fetch('/bundle.js', { method: 'HEAD' })
+            .then(response => {
+                document.getElementById('bundle-test').innerHTML =
+                    response.ok ? '✅ Loaded (' + response.headers.get('content-length') + ' bytes)' : '❌ Failed';
+            })
+            .catch(error => {
+                document.getElementById('bundle-test').innerHTML = '❌ Error: ' + error.message;
+            });
+
+        // Test CSS loading
+        document.getElementById('css-test').textContent =
+            getComputedStyle(document.body).background.includes('gradient') ? '✅ Working' : '❌ Failed';
+
+        // Update time
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+
+        // Server status
+        document.getElementById('server-status').textContent = '✅ Running on port 5500';
+
+        console.log('🔧 Debug page loaded successfully');
+    </script>
+</body>
+</html>

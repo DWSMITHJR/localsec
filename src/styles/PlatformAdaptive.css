@@ -1,0 +1,493 @@
+/* Platform-Adaptive Styles for FireTV, Android, iPad, and all devices */
+
+/* ==================== BASE RESPONSIVE DESIGN ==================== */
+
+:root {
+    --touch-target-size: 44px;
+    --tv-touch-target-size: 80px;
+    --mobile-padding: 1rem;
+    --tablet-padding: 1.5rem;
+    --desktop-padding: 2rem;
+    --tv-padding: 3rem;
+}
+
+/* ==================== FIRETV OPTIMIZATIONS ==================== */
+
+/* FireTV: 10-foot interface with remote control */
+.platform-firetv {
+    /* Larger text for TV viewing distance */
+    font-size: 1.5rem;
+    line-height: 1.8;
+}
+
+.platform-firetv .button {
+    min-height: var(--tv-touch-target-size);
+    font-size: 1.8rem;
+    padding: 1.5rem 3rem;
+    margin: 1rem;
+}
+
+.platform-firetv .input-field {
+    font-size: 1.8rem;
+    padding: 1.5rem;
+    min-height: var(--tv-touch-target-size);
+}
+
+.platform-firetv .container {
+    max-width: 1400px;
+    padding: var(--tv-padding);
+}
+
+/* TV: Focus indicators for remote navigation */
+.platform-firetv *:focus {
+    outline: 4px solid #667eea;
+    outline-offset: 4px;
+    box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.3);
+}
+
+/* TV: Simplified animations */
+.platform-firetv * {
+    transition-duration: 0.2s !important;
+}
+
+/* TV: Grid layout for remote navigation */
+.platform-firetv .vault-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+/* TV: Large modal dialogs */
+.platform-firetv .modal-content {
+    max-width: 90vw;
+    font-size: 1.6rem;
+}
+
+/* TV: Remote control hints */
+.platform-firetv .remote-hint {
+    display: block;
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+}
+
+/* ==================== ANDROID OPTIMIZATIONS ==================== */
+
+/* Android: Touch-optimized interface */
+.platform-android {
+    -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+}
+
+.platform-android .button {
+    min-height: var(--touch-target-size);
+    min-width: var(--touch-target-size);
+    padding: 0.75rem 1.5rem;
+}
+
+.platform-android .input-field {
+    font-size: 16px; /* Prevents zoom on focus */
+    padding: 0.75rem;
+    min-height: var(--touch-target-size);
+}
+
+/* Android: Material Design ripple effect */
+.platform-android .button {
+    position: relative;
+    overflow: hidden;
+}
+
+.platform-android .button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.platform-android .button:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Android: Bottom navigation */
+.platform-android .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem;
+    z-index: 1000;
+}
+
+/* Android: Floating action button */
+.platform-android .fab {
+    position: fixed;
+    bottom: 80px;
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Android: Swipe gestures */
+.platform-android .swipeable {
+    touch-action: pan-y;
+}
+
+/* ==================== IPAD OPTIMIZATIONS ==================== */
+
+/* iPad: Tablet-optimized interface */
+.platform-ipad {
+    font-size: 1.1rem;
+}
+
+.platform-ipad .container {
+    max-width: 900px;
+    padding: var(--tablet-padding);
+}
+
+.platform-ipad .button {
+    min-height: var(--touch-target-size);
+    padding: 0.875rem 1.75rem;
+    font-size: 1.1rem;
+}
+
+.platform-ipad .input-field {
+    font-size: 16px; /* Prevents zoom */
+    padding: 0.875rem;
+}
+
+/* iPad: Split view support */
+.platform-ipad .split-view {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    height: 100vh;
+}
+
+.platform-ipad .split-view .sidebar {
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
+}
+
+.platform-ipad .split-view .main-content {
+    overflow-y: auto;
+}
+
+/* iPad: Multitasking support */
+@media (max-width: 768px) {
+    .platform-ipad .split-view {
+        grid-template-columns: 1fr;
+    }
+    
+    .platform-ipad .split-view .sidebar {
+        display: none;
+    }
+}
+
+/* iPad: Apple Pencil support */
+.platform-ipad .pencil-input {
+    touch-action: none;
+}
+
+/* iPad: Keyboard shortcuts overlay */
+.platform-ipad .keyboard-shortcuts {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    z-index: 2000;
+}
+
+/* ==================== MOBILE OPTIMIZATIONS ==================== */
+
+.platform-mobile .container {
+    padding: var(--mobile-padding);
+}
+
+.platform-mobile .button {
+    width: 100%;
+    min-height: var(--touch-target-size);
+}
+
+.platform-mobile .input-field {
+    font-size: 16px; /* Prevents zoom */
+    width: 100%;
+}
+
+/* Mobile: Pull to refresh */
+.platform-mobile .pull-to-refresh {
+    position: relative;
+    padding-top: 60px;
+}
+
+.platform-mobile .pull-indicator {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem;
+}
+
+/* ==================== DESKTOP OPTIMIZATIONS ==================== */
+
+.platform-desktop .container {
+    max-width: 1200px;
+    padding: var(--desktop-padding);
+}
+
+/* Desktop: Hover effects */
+.platform-desktop .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+}
+
+.platform-desktop .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Desktop: Keyboard shortcuts */
+.platform-desktop .shortcut-hint {
+    display: inline-block;
+    background: #f0f0f0;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+    font-family: monospace;
+}
+
+/* ==================== ORIENTATION HANDLING ==================== */
+
+@media (orientation: landscape) {
+    .landscape-only {
+        display: block;
+    }
+    
+    .portrait-only {
+        display: none;
+    }
+}
+
+@media (orientation: portrait) {
+    .landscape-only {
+        display: none;
+    }
+    
+    .portrait-only {
+        display: block;
+    }
+}
+
+/* ==================== TOUCH vs MOUSE ==================== */
+
+/* Touch devices: Larger touch targets */
+@media (hover: none) and (pointer: coarse) {
+    .button,
+    .input-field,
+    .clickable {
+        min-height: var(--touch-target-size);
+        min-width: var(--touch-target-size);
+    }
+}
+
+/* Mouse devices: Smaller, precise targets */
+@media (hover: hover) and (pointer: fine) {
+    .button {
+        min-height: 36px;
+    }
+}
+
+/* ==================== SAFE AREAS (iOS notch, etc) ==================== */
+
+.safe-area-top {
+    padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+    padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+    padding-right: env(safe-area-inset-right);
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .button {
+        border: 2px solid currentColor;
+    }
+    
+    .input-field {
+        border: 2px solid #000;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --border-color: #333;
+    }
+    
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+    
+    .input-field {
+        background-color: #2a2a2a;
+        color: var(--text-color);
+        border-color: var(--border-color);
+    }
+}
+
+/* ==================== SCREEN SIZE BREAKPOINTS ==================== */
+
+/* Extra small devices (phones, less than 576px) */
+@media (max-width: 575.98px) {
+    .hide-xs {
+        display: none !important;
+    }
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .hide-sm {
+        display: none !important;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .hide-md {
+        display: none !important;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .hide-lg {
+        display: none !important;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .hide-xl {
+        display: none !important;
+    }
+}
+
+/* ==================== PERFORMANCE OPTIMIZATIONS ==================== */
+
+/* GPU acceleration for animations */
+.accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Lazy loading images */
+.lazy-image {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.lazy-image.loaded {
+    opacity: 1;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.touch-friendly {
+    min-height: var(--touch-target-size);
+    min-width: var(--touch-target-size);
+    padding: 0.75rem;
+}
+
+.tv-friendly {
+    min-height: var(--tv-touch-target-size);
+    font-size: 1.5rem;
+    padding: 1.5rem;
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ==================== PLATFORM-SPECIFIC FIXES ==================== */
+
+/* iOS: Fix 100vh issue */
+.platform-ios .full-height {
+    height: -webkit-fill-available;
+}
+
+/* Android: Fix input zoom */
+.platform-android input,
+.platform-android select,
+.platform-android textarea {
+    font-size: 16px !important;
+}
+
+/* FireTV: Disable text selection */
+.platform-firetv * {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* iPad: Fix viewport scaling */
+.platform-ipad {
+    -webkit-text-size-adjust: 100%;
+}
