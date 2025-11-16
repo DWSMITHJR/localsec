@@ -93,7 +93,10 @@ export const MESSAGES = {
         ENCRYPTING: 'Encrypting data...',
         DECRYPTING: 'Decrypting data...',
         SAVING: 'Saving changes...'
-    }
+    },
+
+    // Info messages
+    INFO: {}
 };
 
 // Helper functions for consistent messaging

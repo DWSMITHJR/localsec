@@ -834,7 +834,7 @@ export class CloudServices {
                 const encrypted = await CryptoUtils.encryptData(JSON.stringify({
                     value,
                     expires: Date.now() + ttl,
-                    checksum: await CryptoUtils.hash(JSON.stringify(value))
+                    checksum: await CryptoUtils.calculateChecksum(JSON.stringify(value))
                 }), 'secure_storage_key');
                 localStorage.setItem(`secure_${key}`, encrypted);
             } catch (error) {
@@ -857,7 +857,7 @@ export class CloudServices {
                 }
 
                 // Verify checksum
-                const currentChecksum = await CryptoUtils.hash(JSON.stringify(data.value));
+                const currentChecksum = await CryptoUtils.calculateChecksum(JSON.stringify(data.value));
                 if (currentChecksum !== data.checksum) {
                     SecurityUtils.auditLog.log('storage_tampering_detected', { key }, 'security');
                     localStorage.removeItem(`secure_${key}`);

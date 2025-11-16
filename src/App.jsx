@@ -3,16 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import SecurityUtils from './utils/SecurityUtils.js';
 import CryptoUtils from './utils/CryptoUtils.js';
 import Messages, { getErrorMessage, getSuccessMessage } from './utils/Messages.js';
-import LoginScreen from './components/LoginScreen.jsx';
-import VaultScreen from './components/VaultScreen.jsx';
-import TabBar from './components/TabBar.jsx';
-import ErrorBoundaryWrapper from './components/ErrorBoundaryWrapper.jsx';
-import LoadingScreen from './components/LoadingScreen.jsx';
 import DeviceDetection from './utils/DeviceDetection.js';
 import SecretValidator from './utils/SecretValidator.js';
 import storageUtils from './utils/storageUtils.js';
-
-// Import themer CSS and JS
+import LoginScreen from './components/LoginScreen.jsx';
 import './styles/themer-config.css';
 import './js/themer.js';
 
@@ -22,8 +16,6 @@ const VAULT_ENTRIES_KEY = 'vaultEntries';
 const VAULT_SESSION_TOKEN_KEY = 'vaultSessionToken';
 const VAULT_REMEMBER_ME_KEY = 'vaultRememberMe';
 const VAULT_STORAGE_MODE_KEY = 'vaultStorageMode';
-const VAULT_AUDIT_LOG_KEY = 'vaultAuditLog';
-const VAULT_CLOUD_CREDENTIALS_KEY = 'vaultCloudCredentials';
 const VAULT_AI_KEYS_KEY = 'vaultAIKeys';
 const VAULT_RECOVERY_KEY_KEY = 'vaultRecoveryKey';
 
@@ -31,50 +23,6 @@ const VAULT_RECOVERY_KEY_KEY = 'vaultRecoveryKey';
 const STORAGE_CONFIG = {
     mode: 'browser' // browser, file, unc
 };
-
-// --- Error Boundary for the entire app ---
-function ErrorBoundary({ children }) {
-    const [hasError, setHasError] = useState(false);
-
-    useEffect(() => {
-        const handleError = (event) => {
-            console.error('Global error caught:', event.error);
-            SecurityUtils.auditLog.log('global_error', {
-                message: event.message,
-                filename: event.filename,
-                lineno: event.lineno,
-                colno: event.colno
-            }, 'error');
-        };
-
-        const handleUnhandledRejection = (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            SecurityUtils.auditLog.log('unhandled_rejection', {
-                reason: event.reason
-            }, 'error');
-        };
-
-        window.addEventListener('error', handleError);
-        window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-        return () => {
-            window.removeEventListener('error', handleError);
-            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-        };
-    }, []);
-
-    if (hasError) {
-        return (
-            <div className="error-fallback">
-                <h2>Application Error</h2>
-                <p>An unexpected error occurred. Please refresh the page.</p>
-                <button onClick={() => window.location.reload()}>Refresh</button>
-            </div>
-        );
-    }
-
-    return children;
-}
 
 // --- Main App Component ---
 function App() {
@@ -131,12 +79,9 @@ function App() {
             timestamp: new Date().toISOString()
         });
         
-        console.log('📱 Device detected:', device);
-        
         // Run initial security audit
         const audit = SecretValidator.audit();
         if (!audit.isSecure) {
-            console.warn('🚨 Security Audit Results:', audit.summary);
             SecurityUtils.auditLog.log('security_audit_failed', { violations: audit.violations }, 'warn');
         } else {
             SecurityUtils.auditLog.log('security_audit_passed', { timestamp: Date.now() });
@@ -147,13 +92,162 @@ function App() {
     useEffect(() => {
         // Initialize themer with default theme
         if (window.Themer) {
-            // Register available themes
-            window.Themer.register('light', { dataAttr: 'light' });
-            window.Themer.register('dark', { dataAttr: 'dark' });
-            window.Themer.register('ocean', { dataAttr: 'ocean' });
-            window.Themer.register('forest', { dataAttr: 'forest' });
-            window.Themer.register('sunset', { dataAttr: 'sunset' });
-            window.Themer.register('purple', { dataAttr: 'purple' });
+            // Register available themes with CSS variables
+            window.Themer.register('light', {
+                dataAttr: 'light',
+                variables: {
+                    '--themer-primary': '#667eea',
+                    '--themer-primary-dark': '#764ba2',
+                    '--themer-secondary': '#6c757d',
+                    '--themer-success': '#27ae60',
+                    '--themer-warning': '#f39c12',
+                    '--themer-danger': '#e74c3c',
+                    '--themer-info': '#3498db',
+                    '--themer-bg': '#ffffff',
+                    '--themer-surface': '#f8f9fa',
+                    '--themer-text': '#2c3e50',
+                    '--themer-text-secondary': '#7f8c8d',
+                    '--themer-border': '#e0e0e0',
+                    '--themer-border-light': '#dee2e6',
+                    '--themer-shadow': '0 4px 6px rgba(0,0,0,0.1)',
+                    '--themer-shadow-hover': '0 8px 15px rgba(102,126,234,0.4)',
+                    '--themer-radius': '8px',
+                    '--themer-radius-lg': '12px',
+                    '--themer-radius-xl': '16px',
+                    '--themer-transition': 'all 0.3s ease',
+                    '--themer-font-family': "'Inter',system-ui,-apple-system,sans-serif"
+                }
+            });
+            
+            window.Themer.register('dark', {
+                dataAttr: 'dark',
+                variables: {
+                    '--themer-primary': '#60a5fa',
+                    '--themer-primary-dark': '#818cf8',
+                    '--themer-secondary': '#9ca3af',
+                    '--themer-success': '#34d399',
+                    '--themer-warning': '#fbbf24',
+                    '--themer-danger': '#f87171',
+                    '--themer-info': '#22d3ee',
+                    '--themer-bg': '#1a1a1a',
+                    '--themer-surface': '#2a2a2a',
+                    '--themer-text': '#ffffff',
+                    '--themer-text-secondary': '#d1d5db',
+                    '--themer-border': '#374151',
+                    '--themer-border-light': '#4b5563',
+                    '--themer-shadow': '0 4px 6px rgba(0,0,0,0.3)',
+                    '--themer-shadow-hover': '0 8px 15px rgba(96,165,250,0.4)',
+                    '--themer-radius': '8px',
+                    '--themer-radius-lg': '12px',
+                    '--themer-radius-xl': '16px',
+                    '--themer-transition': 'all 0.3s ease',
+                    '--themer-font-family': "'Inter',system-ui,-apple-system,sans-serif"
+                }
+            });
+            
+            window.Themer.register('ocean', {
+                dataAttr: 'ocean',
+                variables: {
+                    '--themer-primary': '#0077be',
+                    '--themer-primary-dark': '#005a8e',
+                    '--themer-secondary': '#00acc1',
+                    '--themer-success': '#00897b',
+                    '--themer-warning': '#ffa726',
+                    '--themer-danger': '#ef5350',
+                    '--themer-info': '#42a5f5',
+                    '--themer-bg': '#f5f9fc',
+                    '--themer-surface': '#ffffff',
+                    '--themer-text': '#263238',
+                    '--themer-text-secondary': '#546e7a',
+                    '--themer-border': '#e0f2f1',
+                    '--themer-border-light': '#b2dfdb',
+                    '--themer-shadow': '0 4px 6px rgba(0,119,190,0.1)',
+                    '--themer-shadow-hover': '0 8px 15px rgba(0,119,190,0.3)',
+                    '--themer-radius': '8px',
+                    '--themer-radius-lg': '12px',
+                    '--themer-radius-xl': '16px',
+                    '--themer-transition': 'all 0.3s ease',
+                    '--themer-font-family': "'Inter',system-ui,-apple-system,sans-serif"
+                }
+            });
+            
+            window.Themer.register('forest', {
+                dataAttr: 'forest',
+                variables: {
+                    '--themer-primary': '#2e7d32',
+                    '--themer-primary-dark': '#1b5e20',
+                    '--themer-secondary': '#558b2f',
+                    '--themer-success': '#43a047',
+                    '--themer-warning': '#fb8c00',
+                    '--themer-danger': '#e53935',
+                    '--themer-info': '#1e88e5',
+                    '--themer-bg': '#fafafa',
+                    '--themer-surface': '#f1f8e9',
+                    '--themer-text': '#1b5e20',
+                    '--themer-text-secondary': '#33691e',
+                    '--themer-border': '#c5e1a5',
+                    '--themer-border-light': '#a5d6a7',
+                    '--themer-shadow': '0 4px 6px rgba(46,125,50,0.1)',
+                    '--themer-shadow-hover': '0 8px 15px rgba(46,125,50,0.3)',
+                    '--themer-radius': '8px',
+                    '--themer-radius-lg': '12px',
+                    '--themer-radius-xl': '16px',
+                    '--themer-transition': 'all 0.3s ease',
+                    '--themer-font-family': "'Inter',system-ui,-apple-system,sans-serif"
+                }
+            });
+            
+            window.Themer.register('sunset', {
+                dataAttr: 'sunset',
+                variables: {
+                    '--themer-primary': '#ff6b35',
+                    '--themer-primary-dark': '#e55100',
+                    '--themer-secondary': '#f77737',
+                    '--themer-success': '#4caf50',
+                    '--themer-warning': '#ff9800',
+                    '--themer-danger': '#f44336',
+                    '--themer-info': '#2196f3',
+                    '--themer-bg': '#fff5f5',
+                    '--themer-surface': '#ffffff',
+                    '--themer-text': '#263238',
+                    '--themer-text-secondary': '#546e7a',
+                    '--themer-border': '#ffebee',
+                    '--themer-border-light': '#ffcdd2',
+                    '--themer-shadow': '0 4px 6px rgba(255,107,53,0.1)',
+                    '--themer-shadow-hover': '0 8px 15px rgba(255,107,53,0.4)',
+                    '--themer-radius': '8px',
+                    '--themer-radius-lg': '12px',
+                    '--themer-radius-xl': '16px',
+                    '--themer-transition': 'all 0.3s ease',
+                    '--themer-font-family': "'Inter',system-ui,-apple-system,sans-serif"
+                }
+            });
+            
+            window.Themer.register('purple', {
+                dataAttr: 'purple',
+                variables: {
+                    '--themer-primary': '#6a1b9a',
+                    '--themer-primary-dark': '#4a148c',
+                    '--themer-secondary': '#8e24aa',
+                    '--themer-success': '#43a047',
+                    '--themer-warning': '#fb8c00',
+                    '--themer-danger': '#e53935',
+                    '--themer-info': '#1e88e5',
+                    '--themer-bg': '#faf5ff',
+                    '--themer-surface': '#ffffff',
+                    '--themer-text': '#212121',
+                    '--themer-text-secondary': '#757575',
+                    '--themer-border': '#e1bee7',
+                    '--themer-border-light': '#ce93d8',
+                    '--themer-shadow': '0 4px 6px rgba(106,27,154,0.1)',
+                    '--themer-shadow-hover': '0 8px 15px rgba(106,27,154,0.3)',
+                    '--themer-radius': '8px',
+                    '--themer-radius-lg': '12px',
+                    '--themer-radius-xl': '16px',
+                    '--themer-transition': 'all 0.3s ease',
+                    '--themer-font-family': "'Inter',system-ui,-apple-system,sans-serif"
+                }
+            });
             
             // Initialize with saved theme or default
             window.Themer.init('light');
@@ -176,7 +270,6 @@ function App() {
         const interval = setInterval(() => {
             const audit = SecretValidator.audit();
             if (!audit.isSecure) {
-                console.warn('🚨 Periodic Security Audit:', audit.summary);
                 SecurityUtils.auditLog.log('periodic_security_audit_failed', { violations: audit.violations }, 'warn');
             }
         }, window.location.hostname === 'localhost' ? 300000 : 3600000); // 5min dev, 1hr prod
@@ -186,25 +279,30 @@ function App() {
 
     // Initialize vault setup and session
     useEffect(() => {
-        try {
-            // Load vault setup
-            const setupData = localStorage.getItem(VAULT_SETUP_KEY);
-            if (setupData) {
-                const parsedSetup = JSON.parse(setupData);
-                setVaultSetup(parsedSetup);
+        const initializeVault = async () => {
+            try {
+                // Load vault setup
+                const setupData = localStorage.getItem(VAULT_SETUP_KEY);
+                if (setupData) {
+                    const parsedSetup = JSON.parse(setupData);
+                    setVaultSetup(parsedSetup);
+                }
+                
+                // Load session
+                const savedSession = localStorage.getItem(VAULT_SESSION_TOKEN_KEY);
+                const savedRememberMe = localStorage.getItem(VAULT_REMEMBER_ME_KEY) === 'true';
+                
+                if (savedSession && savedRememberMe && SecurityUtils.validateSessionToken(savedSession)) {
+                    setSessionToken(savedSession);
+                    setRememberMe(true);
+                }
+            } catch (e) {
+                SecurityUtils.auditLog.log('setup_failed', { error: e.message }, 'error');
+            } finally {
+                setIsLoading(false);
             }
-            
-            // Load session
-            const savedSession = localStorage.getItem(VAULT_SESSION_TOKEN_KEY);
-            const savedRememberMe = localStorage.getItem(VAULT_REMEMBER_ME_KEY) === 'true';
-            
-            if (savedSession && savedRememberMe && SecurityUtils.validateSessionToken(savedSession)) {
-                setSessionToken(savedSession);
-                setRememberMe(true);
-            }
-        } catch (e) {
-            console.error('Failed to load vault setup:', e);
-        }
+        };
+        initializeVault();
     }, []);
 
     // Encrypt and save entries whenever they change
@@ -221,17 +319,15 @@ function App() {
                 try {
                     await storageUtils.saveToFile(VAULT_ENTRIES_KEY, encryptedData);
                 } catch (e) {
-                    console.warn('File save failed during auto-save, data saved to browser storage:', e);
+                    // File save failed during auto-save, data saved to browser storage
                 }
             }
 
             setEntries(updatedEntries); // Update state
         } catch (e) {
-            console.error("Failed to save entries:", e);
             setError(getErrorMessage('SAVE_FAILED'));
         }
     }, [masterKey, setEntries, setError]);
-
     // Decrypt entries when vault is unlocked
     const loadEntries = async (key) => {
         setIsLoading(true);
@@ -266,7 +362,6 @@ function App() {
             
             await Promise.race([loadPromise(), timeoutPromise]);
         } catch (e) {
-            console.error('Failed to load entries:', e);
             if (e.message.includes('timeout')) {
                 setError('Loading timed out. Please try again.');
                 SecurityUtils.auditLog.log('load_entries_timeout', {}, 'error');
@@ -281,7 +376,6 @@ function App() {
             setIsLoading(false);
         }
     };
-
     // Encrypt and save AI keys whenever they change
     const saveAIKeys = useCallback(async (updatedAIKeys) => {
         if (!masterKey) return; // Don't save if locked
@@ -296,17 +390,15 @@ function App() {
                 try {
                     await storageUtils.saveToFile(VAULT_AI_KEYS_KEY, encryptedData);
                 } catch (e) {
-                    console.warn('AI keys file save failed during auto-save, data saved to browser storage:', e);
+                    // AI keys file save failed during auto-save, data saved to browser storage
                 }
             }
 
             setAiKeys(updatedAIKeys); // Update state
         } catch (e) {
-            console.error("Failed to save AI keys:", e);
             setError(getErrorMessage('SAVE_FAILED'));
         }
     }, [masterKey, setAiKeys, setError]);
-
     
 // Master Password Setup
 const handleSetup = async (password) => {
@@ -412,20 +504,13 @@ const handleLogin = async (password) => {
 
         await Promise.race([loginPromise(), timeoutPromise]);
     } catch (e) {
-        if (e.message.includes('timeout')) {
-            setError('Login timed out. Please try again.');
-            SecurityUtils.auditLog.log('login_timeout', {}, 'error');
-        } else {
-            setError(e.message);
-            SecurityUtils.auditLog.log('login_failed', { error: e.message }, 'error');
-        }
+        SecurityUtils.auditLog.log('login_failed', { error: e.message }, 'error');
+    } finally {
         setMasterKey(null);
         setEntries([]);
-    } finally {
         setIsLoading(false);
     }
 };
-
 // Vault Lock
 const handleLock = () => {
         // Secure cleanup of sensitive data
@@ -615,7 +700,6 @@ const handleLock = () => {
             // Check if session is expired
             const sessionExpiry = localStorage.getItem(`${VAULT_SESSION_TOKEN_KEY}_expiry`);
             if (sessionExpiry && Date.now() > parseInt(sessionExpiry)) {
-                console.warn('Session expired, clearing session');
                 localStorage.removeItem(VAULT_SESSION_TOKEN_KEY);
                 localStorage.removeItem(VAULT_REMEMBER_ME_KEY);
                 localStorage.removeItem(`${VAULT_SESSION_TOKEN_KEY}_expiry`);
@@ -627,13 +711,7 @@ const handleLock = () => {
 
             // Validate session token format
             if (!SecurityUtils.validateSessionToken(sessionToken)) {
-                console.warn('Invalid session token detected, clearing session');
-                localStorage.removeItem(VAULT_SESSION_TOKEN_KEY);
-                localStorage.removeItem(VAULT_REMEMBER_ME_KEY);
-                localStorage.removeItem(`${VAULT_SESSION_TOKEN_KEY}_expiry`);
-                setSessionToken(null);
-                setRememberMe(false);
-                SecurityUtils.auditLog.log('session_invalid', { reason: 'invalid_format' });
+                SecurityUtils.auditLog.log('session_invalid', { reason: 'invalid_format' }, 'warn');
             }
         }
     }, [sessionToken]);

@@ -7,7 +7,11 @@ export class CryptoUtils {
         KEY_LENGTH_BYTES: 32,
         KEY_ALGORITHM: 'AES-GCM',
         HASH_ALGORITHM: 'SHA-256',
-        RSA_KEY_SIZE: 2048
+        RSA_KEY_SIZE: 2048,
+        RSA_ALGORITHM: 'RSA-OAEP',
+        RSA_MODULUS_LENGTH: 2048,
+        RSA_PUBLIC_EXPONENT: new Uint8Array([1, 0, 1]),
+        RSA_HASH: 'SHA-256'
     };
 
     // Test browser compatibility for cryptographic features
@@ -23,6 +27,11 @@ export class CryptoUtils {
 
         if (!window.TextDecoder) {
             throw new Error('TextDecoder not supported');
+        }
+
+        // Check for secure context
+        if (!window.isSecureContext && location.protocol !== 'https:') {
+            console.warn('[CryptoUtils] Warning: Not running in secure context');
         }
 
         // Test basic crypto operations
@@ -63,8 +72,11 @@ export class CryptoUtils {
 
     // Generate cryptographically random bytes (for salt, IV)
     static getRandom(byteLength) {
-        if (byteLength <= 0 || byteLength > 65536) {
-            throw new Error('Invalid random byte length');
+        if (!byteLength || byteLength <= 0 || byteLength > 65536) {
+            throw new Error('Invalid random byte length: must be between 1 and 65536');
+        }
+        if (!window.crypto || !window.crypto.getRandomValues) {
+            throw new Error('Random number generation not supported');
         }
         return window.crypto.getRandomValues(new Uint8Array(byteLength));
     }
@@ -87,17 +99,46 @@ export class CryptoUtils {
 
     // Convert Base64 to ArrayBuffer
     static base64ToBuffer(base64) {
-        const binaryString = window.atob(base64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+        if (!base64 || typeof base64 !== 'string') {
+            throw new Error('Invalid Base64 input');
         }
-        return bytes.buffer;
+        
+        // Remove whitespace and validate base64 format
+        const cleanBase64 = base64.replace(/\s/g, '');
+        if (!/^[A-Za-z0-9+/]*={0,2}$/.test(cleanBase64)) {
+            throw new Error('Invalid Base64 format');
+        }
+        
+        try {
+            const binaryString = window.atob(cleanBase64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        } catch (error) {
+            throw new Error('Base64 decoding failed');
+        }
     }
 
     // --- Password Hashing (PBKDF2) ---
     static async hashPassword(password, saltBase64) {
+        // Validate inputs
+        if (!password || typeof password !== 'string') {
+            throw new Error('Password must be a non-empty string');
+        }
+        if (password.length > 1024) {
+            throw new Error('Password too long (max 1024 characters)');
+        }
+        if (!saltBase64 || typeof saltBase64 !== 'string') {
+            throw new Error('Salt must be a Base64 string');
+        }
+        
         const saltBuffer = this.base64ToBuffer(saltBase64);
+        if (saltBuffer.byteLength !== this.CRYPTO_CONFIG.SALT_LENGTH_BYTES) {
+            throw new Error(`Invalid salt length: expected ${this.CRYPTO_CONFIG.SALT_LENGTH_BYTES} bytes`);
+        }
+        
         const encoder = new TextEncoder();
         const passwordBuffer = encoder.encode(password);
 
@@ -125,6 +166,20 @@ export class CryptoUtils {
 
     // --- Key Derivation ---
     static async deriveKey(password, saltBuffer) {
+        // Validate inputs
+        if (!password || typeof password !== 'string') {
+            throw new Error('Password must be a non-empty string');
+        }
+        if (password.length > 1024) {
+            throw new Error('Password too long (max 1024 characters)');
+        }
+        if (!saltBuffer || !(saltBuffer instanceof ArrayBuffer)) {
+            throw new Error('Salt must be an ArrayBuffer');
+        }
+        if (saltBuffer.byteLength !== this.CRYPTO_CONFIG.SALT_LENGTH_BYTES) {
+            throw new Error(`Invalid salt length: expected ${this.CRYPTO_CONFIG.SALT_LENGTH_BYTES} bytes`);
+        }
+        
         const encoder = new TextEncoder();
         const passwordBuffer = encoder.encode(password);
 
@@ -155,6 +210,17 @@ export class CryptoUtils {
 
     // --- Encryption ---
     static async encryptData(key, data) {
+        // Validate inputs
+        if (!key) {
+            throw new Error('Key is required');
+        }
+        if (typeof data !== 'string') {
+            throw new Error('Data must be a string');
+        }
+        if (data.length > 1048576) { // 1MB limit
+            throw new Error('Data too large for encryption (max 1MB)');
+        }
+        
         const iv = this.getRandom(this.CRYPTO_CONFIG.IV_LENGTH_BYTES);
         const encoder = new TextEncoder();
         const dataBuffer = encoder.encode(data);
@@ -178,28 +244,50 @@ export class CryptoUtils {
 
     // --- Decryption ---
     static async decryptData(key, encryptedBase64) {
+        // Validate inputs
+        if (!key) {
+            throw new Error('Key is required');
+        }
+        if (!encryptedBase64 || typeof encryptedBase64 !== 'string') {
+            throw new Error('Encrypted data must be a Base64 string');
+        }
+        
         const encryptedBuffer = this.base64ToBuffer(encryptedBase64);
         const encryptedArray = new Uint8Array(encryptedBuffer);
+        
+        // Check minimum length (IV + some data)
+        if (encryptedArray.length <= this.CRYPTO_CONFIG.IV_LENGTH_BYTES) {
+            throw new Error('Invalid encrypted data format');
+        }
 
         // Extract IV and encrypted data
         const iv = encryptedArray.slice(0, this.CRYPTO_CONFIG.IV_LENGTH_BYTES);
         const encryptedData = encryptedArray.slice(this.CRYPTO_CONFIG.IV_LENGTH_BYTES);
 
-        const decryptedBuffer = await window.crypto.subtle.decrypt(
-            {
-                name: this.CRYPTO_CONFIG.KEY_ALGORITHM,
-                iv: iv
-            },
-            key,
-            encryptedData
-        );
+        try {
+            const decryptedBuffer = await window.crypto.subtle.decrypt(
+                {
+                    name: this.CRYPTO_CONFIG.KEY_ALGORITHM,
+                    iv: iv
+                },
+                key,
+                encryptedData
+            );
 
-        const decoder = new TextDecoder();
-        return decoder.decode(decryptedBuffer);
+            const decoder = new TextDecoder();
+            return decoder.decode(decryptedBuffer);
+        } catch (error) {
+            throw new Error('Decryption failed - invalid key or corrupted data');
+        }
     }
 
     // --- Password Generator ---
     static generatePassword(length = 16) {
+        // Validate length
+        if (!Number.isInteger(length) || length < 8 || length > 128) {
+            throw new Error('Password length must be between 8 and 128 characters');
+        }
+        
         const lowercase = 'abcdefghijklmnopqrstuvwxyz';
         const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numbers = '0123456789';
@@ -209,18 +297,43 @@ export class CryptoUtils {
         let password = '';
 
         // Ensure at least one character from each category
-        password += lowercase[Math.floor(Math.random() * lowercase.length)];
-        password += uppercase[Math.floor(Math.random() * uppercase.length)];
-        password += numbers[Math.floor(Math.random() * numbers.length)];
-        password += symbols[Math.floor(Math.random() * symbols.length)];
+        password += lowercase[this.getRandomIndex(lowercase.length)];
+        password += uppercase[this.getRandomIndex(uppercase.length)];
+        password += numbers[this.getRandomIndex(numbers.length)];
+        password += symbols[this.getRandomIndex(symbols.length)];
 
         // Fill the rest randomly
         for (let i = 4; i < length; i++) {
-            password += allChars[Math.floor(Math.random() * allChars.length)];
+            password += allChars[this.getRandomIndex(allChars.length)];
         }
 
-        // Shuffle the password
-        return password.split('').sort(() => Math.random() - 0.5).join('');
+        // Shuffle the password using crypto-secure shuffle
+        return this.shuffleString(password);
+    }
+    
+    // Helper method to get cryptographically secure random index
+    static getRandomIndex(max) {
+        if (!window.crypto || !window.crypto.getRandomValues) {
+            throw new Error('Secure random not available');
+        }
+        // Use rejection sampling to avoid modulo bias
+        const randomBytes = new Uint32Array(1);
+        let randomValue;
+        do {
+            window.crypto.getRandomValues(randomBytes);
+            randomValue = randomBytes[0];
+        } while (randomValue >= Math.floor(0xFFFFFFFF / max) * max);
+        return randomValue % max;
+    }
+    
+    // Fisher-Yates shuffle using crypto-secure random
+    static shuffleString(str) {
+        const arr = str.split('');
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = this.getRandomIndex(i + 1);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr.join('');
     }
 
     // --- RSA Key Pair Generation ---

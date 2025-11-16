@@ -86,8 +86,8 @@ describe('CryptoUtils', () => {
     it('should hash password with salt', async () => {
       const password = 'TestPassword123!';
       const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
-      
-      const hash = await CryptoUtils.hashPassword(password, salt);
+      const saltBase64 = CryptoUtils.bufferToBase64(salt.buffer);
+      const hash = await CryptoUtils.hashPassword(password, saltBase64);
       
       expect(hash).toBeDefined();
       expect(hash).toBeTruthy();
@@ -98,8 +98,7 @@ describe('CryptoUtils', () => {
     it('should derive key from password and salt', async () => {
       const password = 'TestPassword123!';
       const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
-      
-      const key = await CryptoUtils.deriveKey(password, salt);
+      const key = await CryptoUtils.deriveKey(password, salt.buffer);
       
       expect(key).toBeInstanceOf(ArrayBuffer);
       expect(key.byteLength).toBe(32);
@@ -135,10 +134,11 @@ describe('CryptoUtils', () => {
 
     it('should handle decryption errors', async () => {
       const key = new ArrayBuffer(32);
-      const invalidEncrypted = 'invalid-base64-data';
+      // Create a valid base64 string that's too short to be valid encrypted data
+      const shortEncrypted = 'AQIDBA=='; // 4 bytes, less than required IV (12 bytes)
       
-      const result = await CryptoUtils.decryptData(key, invalidEncrypted);
-      expect(result).toBeDefined();
+      // Expect the function to handle the error gracefully
+      await expect(CryptoUtils.decryptData(key, shortEncrypted)).rejects.toThrow('Invalid encrypted data format');
     });
   });
 

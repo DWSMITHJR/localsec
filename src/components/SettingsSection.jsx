@@ -203,10 +203,10 @@ const SettingsSection = ({ onReset, saveEntries, entries, setError, aiKeys = [],
 
     const handleStorageModeChange = (mode) => {
         const sanitizedMode = SecurityUtils.sanitizeInput(mode, 20);
+        let message = ''; // Declare message here
         if (['browser', 'file', 'unc'].includes(sanitizedMode)) {
             setStorageMode(sanitizedMode);
             localStorage.setItem('vaultStorageMode', sanitizedMode);
-            let message = '';
             switch (sanitizedMode) {
                 case 'browser':
                     message = 'Using browser storage (local only)';
@@ -218,7 +218,6 @@ const SettingsSection = ({ onReset, saveEntries, entries, setError, aiKeys = [],
                     message = 'Using network storage (advanced)';
                     break;
             }
-            console.log(message);
         }
         SecurityUtils.auditLog.log('storage_mode_changed', { from: storageMode, to: sanitizedMode });
 
